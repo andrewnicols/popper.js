@@ -28,7 +28,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global.Popper = factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
   /**
    * The Object.assign() method is used to copy the values of all enumerable own properties from one or more source
@@ -249,7 +249,9 @@
               left: 0 - (offsetParentRect.left - scrollLeft)
           };
       } else {
-          if (getOffsetParent(popper) === boundariesElement) {
+          var _offsetParent = getOffsetParent(popper);
+          var _offsetParentRect = getOffsetRect(_offsetParent);
+          if (_offsetParent === boundariesElement) {
               boundaries = {
                   top: 0,
                   left: 0,
@@ -258,6 +260,8 @@
               };
           } else {
               boundaries = getOffsetRect(boundariesElement);
+              boundaries.left += _offsetParentRect.left;
+              boundaries.right += _offsetParentRect.left;
           }
       }
       boundaries.left += padding;
@@ -1228,6 +1232,123 @@
    * @property {Object} data.offsets.arro] `top` and `left` offsets, only one of them will be different from 0
    */
 
+  var asyncGenerator = function () {
+    function AwaitValue(value) {
+      this.value = value;
+    }
+
+    function AsyncGenerator(gen) {
+      var front, back;
+
+      function send(key, arg) {
+        return new Promise(function (resolve, reject) {
+          var request = {
+            key: key,
+            arg: arg,
+            resolve: resolve,
+            reject: reject,
+            next: null
+          };
+
+          if (back) {
+            back = back.next = request;
+          } else {
+            front = back = request;
+            resume(key, arg);
+          }
+        });
+      }
+
+      function resume(key, arg) {
+        try {
+          var result = gen[key](arg);
+          var value = result.value;
+
+          if (value instanceof AwaitValue) {
+            Promise.resolve(value.value).then(function (arg) {
+              resume("next", arg);
+            }, function (arg) {
+              resume("throw", arg);
+            });
+          } else {
+            settle(result.done ? "return" : "normal", result.value);
+          }
+        } catch (err) {
+          settle("throw", err);
+        }
+      }
+
+      function settle(type, value) {
+        switch (type) {
+          case "return":
+            front.resolve({
+              value: value,
+              done: true
+            });
+            break;
+
+          case "throw":
+            front.reject(value);
+            break;
+
+          default:
+            front.resolve({
+              value: value,
+              done: false
+            });
+            break;
+        }
+
+        front = front.next;
+
+        if (front) {
+          resume(front.key, front.arg);
+        } else {
+          back = null;
+        }
+      }
+
+      this._invoke = send;
+
+      if (typeof gen.return !== "function") {
+        this.return = undefined;
+      }
+    }
+
+    if (typeof Symbol === "function" && Symbol.asyncIterator) {
+      AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
+        return this;
+      };
+    }
+
+    AsyncGenerator.prototype.next = function (arg) {
+      return this._invoke("next", arg);
+    };
+
+    AsyncGenerator.prototype.throw = function (arg) {
+      return this._invoke("throw", arg);
+    };
+
+    AsyncGenerator.prototype.return = function (arg) {
+      return this._invoke("return", arg);
+    };
+
+    return {
+      wrap: function (fn) {
+        return function () {
+          return new AsyncGenerator(fn.apply(this, arguments));
+        };
+      },
+      await: function (value) {
+        return new AwaitValue(value);
+      }
+    };
+  }();
+
+
+
+
+
   var classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -1252,6 +1373,78 @@
     };
   }();
 
+
+
+
+
+
+
+  var get = function get(object, property, receiver) {
+    if (object === null) object = Function.prototype;
+    var desc = Object.getOwnPropertyDescriptor(object, property);
+
+    if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);
+
+      if (parent === null) {
+        return undefined;
+      } else {
+        return get(parent, property, receiver);
+      }
+    } else if ("value" in desc) {
+      return desc.value;
+    } else {
+      var getter = desc.get;
+
+      if (getter === undefined) {
+        return undefined;
+      }
+
+      return getter.call(receiver);
+    }
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  var set = function set(object, property, value, receiver) {
+    var desc = Object.getOwnPropertyDescriptor(object, property);
+
+    if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);
+
+      if (parent !== null) {
+        set(parent, property, value, receiver);
+      }
+    } else if ("value" in desc && desc.writable) {
+      desc.value = value;
+    } else {
+      var setter = desc.set;
+
+      if (setter !== undefined) {
+        setter.call(receiver, value);
+      }
+    }
+
+    return value;
+  };
+
+  // Polyfills
+  // Utils
+  // Modifiers
   // default options
   var DEFAULTS = {
       // placement of the popper
@@ -1381,7 +1574,7 @@
       function Popper(reference, popper) {
           var _this = this;
 
-          var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+          var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
           classCallCheck(this, Popper);
           this.Defaults = DEFAULTS;
 
@@ -1608,4 +1801,4 @@
 
   return Popper;
 
-}));
+})));

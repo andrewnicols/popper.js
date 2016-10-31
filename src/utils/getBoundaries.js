@@ -42,7 +42,9 @@ export default function getBoundaries(popper, data, padding, boundariesElement) 
             left: 0 - (offsetParentRect.left - scrollLeft)
         };
     } else {
-        if (getOffsetParent(popper) === boundariesElement) {
+        const offsetParent = getOffsetParent(popper);
+        const offsetParentRect = getOffsetRect(offsetParent);
+        if (offsetParent === boundariesElement) {
             boundaries = {
                 top: 0,
                 left: 0,
@@ -51,6 +53,8 @@ export default function getBoundaries(popper, data, padding, boundariesElement) 
             };
         } else {
             boundaries = getOffsetRect(boundariesElement);
+            boundaries.left += offsetParentRect.left;
+            boundaries.right += offsetParentRect.left;
         }
     }
     boundaries.left += padding;
