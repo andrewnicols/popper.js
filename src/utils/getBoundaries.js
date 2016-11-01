@@ -53,8 +53,8 @@ export default function getBoundaries(popper, data, padding, boundariesElement) 
             };
         } else {
             boundaries = getOffsetRect(boundariesElement);
-            boundaries.left += offsetParentRect.left;
-            boundaries.right += offsetParentRect.left;
+            boundaries.left -= offsetParentRect.left;
+            boundaries.right -= offsetParentRect.left;
         }
     }
     boundaries.left += padding;

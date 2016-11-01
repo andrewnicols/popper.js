@@ -260,8 +260,8 @@
               };
           } else {
               boundaries = getOffsetRect(boundariesElement);
-              boundaries.left += _offsetParentRect.left;
-              boundaries.right += _offsetParentRect.left;
+              boundaries.left -= _offsetParentRect.left;
+              boundaries.right -= _offsetParentRect.left;
           }
       }
       boundaries.left += padding;
