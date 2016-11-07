@@ -15,6 +15,7 @@ import getPosition from './getPosition';
 export default function getBoundaries(popper, padding, boundariesElement) {
     // NOTE: 1 DOM access here
     let boundaries = {};
+    const position = getPosition(popper);
     if (boundariesElement === 'window') {
         const body = window.document.body;
         const html = window.document.documentElement;
@@ -31,7 +32,6 @@ export default function getBoundaries(popper, padding, boundariesElement) {
         const offsetParent = getOffsetParent(popper);
         const scrollParent = getScrollParent(popper);
         const offsetParentRect = getOffsetRect(offsetParent);
-        const position = getPosition(popper);
 
         // if the popper is fixed we don't have to substract scrolling from the boundaries
         const scrollTop = position === 'fixed' ? 0 : scrollParent.scrollTop;
@@ -43,6 +43,10 @@ export default function getBoundaries(popper, padding, boundariesElement) {
             bottom: window.document.documentElement.clientHeight - (offsetParentRect.top - scrollTop),
             left: 0 - (offsetParentRect.left - scrollLeft)
         };
+        if (position === 'fixed') {
+            boundaries.left = Math.max(0, boundaries.left);
+            boundaries.top = Math.max(0, boundaries.top);
+        }
     } else {
         if (getOffsetParent(popper) === boundariesElement) {
             boundaries = {
@@ -52,12 +56,19 @@ export default function getBoundaries(popper, padding, boundariesElement) {
                 bottom: boundariesElement.clientHeight
             };
         } else {
-            if (data.offsets.popper.position === 'fixed') {
+            if (position === 'fixed') {
                 // Fixed positions are relative to the parent of the offsetElement outside of the Bounding Element.
                 const offsetParent = getOffsetParent(boundariesElement);
 
                 if (offsetParent === window.document.documentElement) {
-                    return getBoundaries(popper, data, padding, 'viewport');
+                    const offsetBoundary = getOffsetRect(boundariesElement);
+                    const viewportBoundary = getBoundaries(popper, 0, 'viewport');
+                    boundaries.left = Math.max(viewportBoundary.left, offsetBoundary.left);
+                    boundaries.right = Math.min(viewportBoundary.right, offsetBoundary.right);
+                    boundaries.top = Math.max(viewportBoundary.top, offsetBoundary.top);
+                    boundaries.bottom = Math.min(viewportBoundary.bottom, offsetBoundary.bottom);
+                    boundaries.width = boundaries.right - boundaries.left;
+                    boundaries.height = boundaries.bottom - boundaries.top;
                 } else {
                     boundaries = getOffsetRect(boundariesElement);
                     const offsetParentRect = getOffsetRect(offsetParent);
@@ -87,8 +98,8 @@ export default function getBoundaries(popper, padding, boundariesElement) {
         }
     }
     boundaries.left = Math.min(boundaries.left + padding, padding);
-    boundaries.right -= (2 * padding);
+    boundaries.right -= padding;
     boundaries.top = Math.min(boundaries.top + padding, padding);
-    boundaries.bottom -= (2 * padding);
+    boundaries.bottom -= padding;
     return boundaries;
 }

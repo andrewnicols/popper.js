@@ -49,7 +49,7 @@ export default function flip(data, options) {
         // this boolean is used to distinguish right and bottom from top and left
         // they need different computations to get flipped
         const a = ['right', 'bottom'].indexOf(placement) !== -1;
-        const b = ['top', 'bottom'].indexOf(placement) !== -1;
+        const b = ['top', 'left'].indexOf(placement) !== -1;
 
         // using Math.floor because the reference offsets may contain decimals we are not going to consider here
         const flippedPosition = a && Math.floor(popperOffsets[placement]) > Math.floor(options.boundaries[placement]) ||
